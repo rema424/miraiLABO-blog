@@ -33,9 +33,12 @@ func createMux() *echo.Echo {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Gzip())
 
-	return e //アプリケーションインスタンスを返却
+	e.Static("/css", "src/css")
+
+	return e
 }
 
+//データ渡し
 func articleindex(c echo.Context) error {
 	data := map[string]interface{}{
 		"Message": "Hello, World!",
@@ -44,14 +47,18 @@ func articleindex(c echo.Context) error {
 	return render(c, "article/index.html", data)
 }
 
+//生成したhtmlデータをバイトデータとして返す
 func htmlBlob(file string, data map[string]interface{}) ([]byte, error) {
 	return pongo2.Must(pongo2.FromCache(tmplPath + file)).ExecuteBytes(data)
 }
 
 func render(c echo.Context, file string, data map[string]interface{}) error {
+	//htmlblob()からhtmlをバイトデータとして受け取る
 	b, err := htmlBlob(file, data)
+	//エラーチェック
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	//ステータスコード200でhtmlデータをレスポンス
 	return c.HTMLBlob(http.StatusOK, b)
 }
