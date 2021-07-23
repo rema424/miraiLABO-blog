@@ -2,22 +2,29 @@ package main
 
 //利用するパッケージの宣言
 import (
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	//外部パッケージ
 	"github.com/flosch/pongo2"
+	_ "github.com/go-sql-driver/mysql" // Using MySQL driver
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-const tmplPath = "src/template/"
+const tmplPath = "src/template/" //
 
 //グローバル変数eにcreateMux()の関数の戻り値を格納
+var db *sqlx.DB
 var e = createMux()
 
 func main() {
+	db = connectDB()
+
 	//`/`と言うパス(URL)と``articleindex`を結びつける
 	e.GET("/", articleindex)
 	//ルーディング追加
@@ -41,6 +48,19 @@ func createMux() *echo.Echo {
 	e.Static("js", "src/js")
 
 	return e
+}
+
+func connectDB() *sqlx.DB {
+	dsn := os.Getenv("DSN")
+	db, err := sqlx.Open("mysql", dsn)
+	if err != nil {
+		e.Logger.Fatal(err)
+	}
+	if err := db.Ping(); err != nil {
+		e.Logger.Fatal(err)
+	}
+	log.Println("db connection succeeded")
+	return db
 }
 
 //データ渡し
