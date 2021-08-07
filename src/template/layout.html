@@ -5,12 +5,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, inital-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="csrf" content="{{ CSRF }}" />
   <title>{% block title %}miraiLABO-Tech{% endblock %}</title>
 
   <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css" />
 
   <link rel="stylesheet" href="/css/layout.css" />
   {% block css %}{% endblock %}
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css">
 </head>
 
 <body>

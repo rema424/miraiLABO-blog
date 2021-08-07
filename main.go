@@ -27,6 +27,7 @@ func main() {
 	e.GET("/new", handler.ArticleNew)
 	e.GET("/:id", handler.ArticleShow)
 	e.GET("/:id/edit", handler.ArticleEdit)
+	e.POST("/", handler.ArticleCreate)
 
 	//wevサーバーをローカルホストで起動する
 	e.Logger.Fatal(e.Start(":8080"))
@@ -39,6 +40,7 @@ func createMux() *echo.Echo {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Gzip())
+	e.Use(middleware.CSRF())
 
 	e.Static("/css", "src/css")
 	e.Static("js", "src/js")
