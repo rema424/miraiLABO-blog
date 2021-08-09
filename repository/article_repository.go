@@ -2,20 +2,30 @@ package repository
 
 import (
 	"database/sql"
+	"math"
 	"time"
 
 	"miraiLABO-blog/model"
 )
 
-// ArticleList...
-func ArticleList() ([]*model.Article, error) {
-	query := `SELECT * FROM articles;`
-
-	var articles []*model.Article
-	if err := db.Select(&articles, query); err != nil {
-		return nil, err
+// ArticleListByCursor...
+func ArticleListByCursor(cursor int) ([]*model.Article, error) {
+	if cursor <= 0 {
+		cursor = math.MaxInt32
 	}
 
+	//ID の降順に記事データを 10 件取得するクエリ文字列を生成します。
+	query := `SELECT *
+	FROM articles
+	WHERE id < ?
+	ORDER BY id desc
+	LIMIT 10`
+
+	articles := make([]*model.Article, 0, 10)
+
+	if err := db.Select(&articles, query, cursor); err != nil {
+		return nil, err
+	}
 	return articles, nil
 }
 
@@ -52,4 +62,16 @@ func ArticleCreate(article *model.Article) (sql.Result, error) {
 
 	// SQL の実行結果を返却します。
 	return res, nil
+}
+
+// ArticleDelete...
+func ArticleDelete(id int) error {
+	query := "DELETE FROM articles WHERE id = ?"
+	tx := db.MustBegin()
+
+	if _, err := tx.Exec(query, id); err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }

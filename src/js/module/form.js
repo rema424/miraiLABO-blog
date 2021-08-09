@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const articleFormPreview = document.querySelector('.article-form__preview');
   const articleFormBodyTextArea = document.querySelector('.article-form__input--body');
   const articleFormPreviewTextArea = document.querySelector('.article-form__preview-body-contents');
+  const errors = document.querySelector('.article-form__errors');
+  const errorTmpl = document.querySelector('.article-form__error-tmpl').firstElementChild;
 
   // 新規作成画面か編集画面かを URL から判定します。
   const mode = { method: '', url: '' };
@@ -82,6 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
   saveBtn.addEventListener('click', event => {
     event.preventDefault();
 
+    // 前回のバリデーションエラーの表示が残っている場合は消去します。
+    errors.innerHTML = null;
+
     // フォームに入力された内容を取得します。
      const fd = new FormData(form);
 
@@ -106,9 +111,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if(body.ValidationErrors){
-        // バリデーションエラーがある場合の処理をここに記載します。
+        showErrors(body.ValidationErrors);
       }
     })
     .catch(err => console.error(err));
   });
+
+  // バリデーションエラーを表示する関数
+  const showErrors = message => {
+    if(Array.isArray(message) && message.length != 0){
+      const fragment = document.createDocumentFragment();
+      message.forEach(message => {
+        const frag = document.createDocumentFragment();
+        frag.appendChild(errorTmpl.cloneNode(true));
+        frag.querySelector('.article-form__error').innerHTML = message;
+        fragment.appendChild(frag);
+      });
+      errors.appendChild(fragment);
+    }
+  };
 });

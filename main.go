@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 //グローバル変数eにcreateMux()の関数の戻り値を格納
@@ -28,6 +29,7 @@ func main() {
 	e.GET("/:id", handler.ArticleShow)
 	e.GET("/:id/edit", handler.ArticleEdit)
 	e.POST("/", handler.ArticleCreate)
+	e.DELETE("/:id", handler.ArticleDelete)
 
 	//wevサーバーをローカルホストで起動する
 	e.Logger.Fatal(e.Start(":8080"))
@@ -45,6 +47,8 @@ func createMux() *echo.Echo {
 	e.Static("/css", "src/css")
 	e.Static("js", "src/js")
 
+	e.Validator = &CustomValidator{validator: validator.New()}
+
 	return e
 }
 
@@ -59,4 +63,14 @@ func connectDB() *sqlx.DB {
 	}
 	log.Println("db connection succeeded")
 	return db
+}
+
+// CustomValidator...
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+// Validate...
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
 }
