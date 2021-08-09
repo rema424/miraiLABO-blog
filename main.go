@@ -23,15 +23,18 @@ func main() {
 	db = connectDB()
 	repository.SetDB(db)
 
-	//`/`と言うパス(URL)と``articleindex`を結びつける
+	// TOPページに一覧を表示
 	e.GET("/", handler.Articleindex)
-	e.GET("/new", handler.ArticleNew)
-	e.GET("/:id", handler.ArticleShow)
-	e.GET("/:id/edit", handler.ArticleEdit)
-	e.POST("/", handler.ArticleCreate)
-	e.DELETE("/:id", handler.ArticleDelete)
 
-	//wevサーバーをローカルホストで起動する
+	e.GET("/articles", handler.Articleindex)                //一覧画面
+	e.GET("/articles/new", handler.ArticleNew)              // 新規作成画面
+	e.GET("/articles/:articleID", handler.ArticleShow)      // 詳細画面
+	e.GET("/articles/:articleID/edit", handler.ArticleEdit) // 編集画面
+
+	e.GET("/api/articles", handler.ArticleList)                 // 一覧
+	e.POST("/api/articles", handler.ArticleCreate)              // 一覧記事
+	e.DELETE("/api/articles/:articleID", handler.ArticleDelete) // 消去
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
