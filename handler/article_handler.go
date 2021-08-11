@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"miraiLABO-blog/model"
@@ -18,6 +19,7 @@ func Articleindex(c echo.Context) error {
 	}
 
 	articles, err := repository.ArticleListByCursor(0)
+
 	if err != nil {
 		c.Logger().Error(err.Error())
 		return c.NoContent(http.StatusInternalServerError)
@@ -60,14 +62,21 @@ func ArticleShow(c echo.Context) error {
 	return render(c, "article/show.html", data)
 }
 
+// ArticleEdit...
 func ArticleEdit(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("articleID"))
 
-	data := map[string]interface{}{
-		"Message": "Article Edit",
-		"Now":     time.Now(),
-		"ID":      id,
+	article, err := repository.ArticleGetByID(id)
+
+	if err != nil {
+		c.Logger().Error(err.Error())
+		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	data := map[string]interface{}{
+		"Article": article,
+	}
+
 	return render(c, "article/edit.html", data)
 }
 
@@ -151,4 +160,49 @@ func ArticleList(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "")
 	}
 	return c.JSON(http.StatusOK, articles)
+}
+
+// ArticleUpdateOutput...
+type ArticleUpdateOutput struct {
+	Article          *model.Article
+	Message          string
+	ValidationErrors []string
+}
+
+func ArticleUpdate(c echo.Context) error {
+	ref := c.Request().Referer()
+	refID := strings.Split(ref, "/")[4] // リクエスト送信元のパスから
+	reqlID := c.Param("articleID")      // リクエストURLのパスパラメーターから
+
+	// 編集画面で表示している記事と更新しようとしている記事が異なる場合は、更新処理をせず400エラーを返す。
+	if reqlID != refID {
+		return c.JSON(http.StatusBadRequest, "")
+	}
+
+	var article model.Article
+	var out ArticleUpdateOutput
+
+	if err := c.Bind(&article); err != nil {
+		return c.JSON(http.StatusBadRequest, out)
+	}
+
+	if err := c.Validate(&article); err != nil {
+		out.ValidationErrors = article.ValidationErrors(err)
+		return c.JSON(http.StatusUnprocessableEntity, out)
+	}
+
+	articleID, _ := strconv.Atoi(reqlID)
+
+	article.ID = articleID
+
+	_, err := repository.ArticleUpdate(&article)
+
+	if err != nil {
+		out.Message = err.Error()
+		return c.JSON(http.StatusInternalServerError, out)
+	}
+
+	out.Article = &article
+
+	return c.JSON(http.StatusOK, out)
 }

@@ -34,6 +34,7 @@ func main() {
 	e.GET("/api/articles", handler.ArticleList)                 // 一覧
 	e.POST("/api/articles", handler.ArticleCreate)              // 一覧記事
 	e.DELETE("/api/articles/:articleID", handler.ArticleDelete) // 消去
+	e.PATCH("/api/articles/:articleID", handler.ArticleUpdate)  // 更新
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
